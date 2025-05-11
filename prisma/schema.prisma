@@ -1,0 +1,136 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id            String          @id @default(cuid())
+  name          String?
+  email         String?         @unique
+  emailVerified DateTime?       
+  image         String?
+  sessions      Session[]
+  accounts      Account[]
+  wallets       Wallet[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("users")
+}
+
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?
+  access_token       String?
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?
+  session_state      String?
+  user               User    @relation(fields: [userId], references: [id])
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String    @id @default(cuid())
+  sessionToken String    @unique
+  userId       String  
+  expires      DateTime
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+ 
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Wallet {
+  id        String   @id @default(cuid())
+  name      String
+  address   String  @unique 
+  email     String
+  balance   String
+  network   String   
+  user  User  @relation(fields: [email] , references: [email], onDelete: Cascade)
+  wallettokens  WalletToken[]
+  nfts  NFT[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Constraints
+  @@unique([address, email])
+  @@index([email])
+  @@map("wallets")
+}
+
+model AllToken {
+  id            String   @id @default(cuid())
+  address       String   @unique
+  name          String?
+  symbol        String?
+  decimals      Int?
+  logo          String?
+  price         Float?
+  lastUpdated   DateTime?
+  volume24h     Float?  
+  isActive      Boolean   @default(true)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("active_tokens")
+}
+
+model WalletToken {
+  id           String   @id @default(cuid())
+  walletId     String
+  tokenAddress String
+  price        String? 
+  balance      Float    @default(0)
+  lastChecked  DateTime?
+
+  wallet       Wallet       @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@unique([walletId, tokenAddress])
+  @@map("wallet_tokens")
+}
+
+model NFT {
+  id           String   @id @default(cuid())
+  walletId     String
+  address       String   
+  name          String?
+  image          String?
+  wallet       Wallet       @relation(fields: [walletId], references: [id], onDelete: Cascade)
+ 
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([walletId, address])
+}

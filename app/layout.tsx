@@ -1,20 +1,22 @@
-import type { Metadata } from 'next'
-import './globals.css'
+import type { Metadata } from "next";
+import "./globals.css";
+// import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: 'v0 App',
-  description: 'Created with v0',
-  generator: 'v0.dev',
-}
+  title: "Solana-Watcher",
+  description: "Track all whales and get notified for million-dollar opportunities on Solana",
+};
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+  session,
+}: { children: React.ReactNode; session: any }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className="antialiased">
+        {/* <Providers session={session}>{children}</Providers> */}
+        {children}
+      </body>
     </html>
-  )
+  );
 }

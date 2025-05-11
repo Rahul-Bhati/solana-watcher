@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { CheckIcon, CopyIcon, PlusIcon, TrashIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -9,7 +9,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { prisma } from "@/prisma/prisma"
+import { useSession } from "next-auth/react"
+import axios from "axios"
 
+let z=0;
 // Mock data
 const mockWallets = [
   {
@@ -35,7 +39,7 @@ const mockWallets = [
   },
 ]
 
-export function MultiWalletSupport() {
+export default function MultiWalletSupport() {
   const [wallets, setWallets] = useState(mockWallets)
   const [activeWallet, setActiveWallet] = useState(mockWallets[0].id)
   const [newWalletName, setNewWalletName] = useState("")
@@ -43,6 +47,13 @@ export function MultiWalletSupport() {
   const [newWalletNetwork, setNewWalletNetwork] = useState("Ethereum")
   const [showAddWallet, setShowAddWallet] = useState(false)
   const [copied, setCopied] = useState(false)
+
+  const { data } = useSession();
+  
+
+  console.log("Session Data:", data);
+console.log("User Email:", data?.user?.email);
+
 
   const handleAddWallet = () => {
     if (newWalletAddress && newWalletName) {
@@ -75,6 +86,31 @@ export function MultiWalletSupport() {
 
   const getActiveWallet = () => wallets.find((wallet) => wallet.id === activeWallet)
 
+  async function fetchWallets() {
+    try {
+      const response = await axios.get(`http://localhost:3000/api/wallets?email=${data?.user?.email}`)
+      
+      if (response.data) {
+        console.log("Wallets found:", response.data.wallets);
+        setWallets(response?.data?.wallets);
+      } else {
+        console.log("No wallets found.");
+      }
+    } catch (error) {
+      console.error("Error fetching wallets:", error);
+    }
+  }
+
+  useEffect(() => {
+    if (!data?.user?.email) return; // ✅ Prevents unnecessary execution
+  
+    console.log("inside wallet support useEffect");
+  
+    fetchWallets();
+  }, [data?.user?.email]);
+  
+  
+
   return (
     <Card>
       <CardContent className="p-4">
@@ -91,7 +127,7 @@ export function MultiWalletSupport() {
 
               {wallets.map((wallet) => (
                 <TabsContent key={wallet.id} value={wallet.id} className="mt-0">
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2 mt-4">
                     <Badge variant="outline">{wallet.network}</Badge>
                     <div className="flex items-center space-x-2">
                       <span className="text-xs text-muted-foreground">
