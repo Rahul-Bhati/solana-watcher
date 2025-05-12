@@ -2,6 +2,7 @@
 
 A real-time **crypto portfolio tracking tool** focused on Solana.  
 It fetches and aggregates token balances, SOL holdings, and calculates the USD value using live price feeds.
+![image](https://github.com/user-attachments/assets/bd3a71d6-7d73-4fae-a12f-a906f9ec4cfa)
 
 ## 🧠 Core Purpose
 
